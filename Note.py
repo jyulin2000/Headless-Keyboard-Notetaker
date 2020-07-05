@@ -15,11 +15,13 @@
 from datetime import datetime
 from string import ascii_letters, digits
 from os import getcwd
+from collections import deque
 
 class Note:
 	def __init__(self, filename=""):
 		self.__path = getcwd()
-	
+		self.__buffer = deque()	
+		
 		if filename == "":
 			filename = self.__default_filename()
 		else:
@@ -32,12 +34,14 @@ class Note:
 		if ch == "":
 			return
 		elif ch == "backspace":
-			print("\nbackspace pressed: figure out how to handle this")
-			return
+			self.__buffer.pop()
 		else:
-			self.__file.write(ch)
+			self.__buffer.append(ch)
 	
 	def end(self):
+		while len(self.__buffer) > 0:
+			self.__file.write(self.__buffer.popleft())
+		
 		self.__file.close()
 	
 	# Produces a valid filename from the given string.
