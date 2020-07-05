@@ -46,8 +46,7 @@ class Keytracker:
 				if name == '\n':
 					self.__start_new_recording()
 				elif name == "q" and self.__alt_on:
-					self.__stop_recording()
-					self.__semaphore.release()	
+					self.__quit()
 					return
 			
 			elif self.__recording == 't':
@@ -63,7 +62,7 @@ class Keytracker:
 						return
 					if name == 'q': # Quit program directly from recording session
 						self.__stop_recording()
-						self.__semaphore.release()
+						self.__quit()
 						return
 					elif name == 't': # Command to enter title
 						self.__start_recording_title()
@@ -77,15 +76,16 @@ class Keytracker:
 		except:
 			print("Exception happened idk")
 			traceback.print_exc()
-			self.__semaphore.release()
+			self.__quit()
 
 	# Translates raw keyboard stroke input into the desired character	
 	def __process_event_name(self, event):
 		name = event.name
+		if name in ignore_keys: return ""
+
 		if event.scan_code == 12: name = '-' # The minus key maps wrong, so just hardcode it
 		if self.__shift_on: name = self.__shift(name)
 		if name in replacement_map: name = replacement_map[name]
-		if name in ignore_keys: name = ""
 	
 		return name		
 	
@@ -145,6 +145,10 @@ class Keytracker:
 		self.__note.end()
 		print("Recording session ended.")
 	
+	def __quit(self):
+		print("Quitting...")
+		keyboard.unhook_all()
+		self.__semaphore.release()
 if __name__ == "__main__":
 	keytracker = Keytracker()
 	keytracker.start()
