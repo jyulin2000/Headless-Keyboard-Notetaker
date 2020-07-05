@@ -20,7 +20,7 @@ from collections import deque
 
 class Note:
 	def __init__(self, filename=""):
-		self.__path = os.getcwd() + "/notes"
+		self.__path = self.__get_path_to_notes()
 		self.__buffer = deque()
 		self.__title_mode = False
 		self.__title_buffer = None
@@ -29,10 +29,11 @@ class Note:
 			filename = self.__default_filename()
 		else:
 			filename = self.__valid_filename(filename)
-		
+		filename = self.__unique_filename(filename)
+	
 		self.__original_filename = filename
 		self.__cur_filename = filename	
-		self.__file = open("%s/%s.txt" % (self.__path, filename), 'w')
+		self.__file = open(self.path_to(filename), 'w')
 	
 	def write_char(self, ch):
 		buffer = self.__title_buffer if self.__title_mode else self.__buffer
@@ -53,7 +54,7 @@ class Note:
 			title += self.__title_buffer.popleft()
 		
 		title = self.__valid_filename(title)
-		self.__cur_filename = title
+		self.__cur_filename = self.__unique_filename(title)
 
 		self.__title_mode = False
 		self.__title_buffer = None
@@ -65,17 +66,44 @@ class Note:
 		self.__file.close()
 		
 		if self.__cur_filename != self.__original_filename:
-			shutil.move("%s/%s.txt" % (self.__path, self.__original_filename),
-						"%s/%s.txt" % (self.__path, self.__cur_filename))
+			shutil.move(self.path_to(self.__original_filename),
+						self.path_to(self.__cur_filename))
+	
+	# Returns full path to the existing notes folder,
+	# creates notes folder if it does not exist already.
+	def __get_path_to_notes(self):
+		p = os.getcwd() + "/notes"
+		if not os.path.exists(p):
+			try:
+				os.mkdir(p)
+			except OSError:
+				pass
+		return p
+	
+	# Produces full path to given filename with extension .txt
+	def path_to(self, s):
+		return "%s/%s.txt" % (self.__path, s)
 
 	# Produces a valid filename from the given string.
-	# Replaces spaces with underscores
+	# Replaces spaces with underscores.
 	def __valid_filename(self, s):
 		valid_chars = "-_.() %s%s" % (ascii_letters, digits)
 		filename = ''.join(c for c in s if c in valid_chars)
 		filename = filename.replace(' ', '_')
 		return filename
-
+	
+	# Adjusts the given filename if it already exists.
+	# Assumes filename is already valid.
+	def __unique_filename(self, s):
+		if os.path.exists(self.path_to(s)):
+			n = 1
+			f = "%s_(%d)"
+			while os.path.exists(self.path_to(f % (s, n))):
+				n += 1
+			return f % (s, n)	
+		else:
+			return s
+	
 	# Use the formatted current date/time as the default filename.
 	# Seconds seem granular enough to guarantee uniqueness,
 	# but there is a check later to ensure no duplicate filenames,
