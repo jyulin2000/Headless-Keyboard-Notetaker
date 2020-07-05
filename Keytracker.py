@@ -7,6 +7,8 @@ from threading import Semaphore
 from string import ascii_letters
 from Note import Note
 
+import traceback # For debugging
+
 replacement_map = {"space":' ', "tab":'\t', "enter":'\n'}
 
 # We have to manually shift characters because we're reading in the literal keystrokes
@@ -42,28 +44,29 @@ class Keytracker:
 			
 			if self.__recording == 'o':
 				if name == '\n':
-					self.__start_recording_title()
+					self.__start_new_recording()
 				elif name == "q" and self.__alt_on:
+					self.__stop_recording()
 					self.__semaphore.release()	
 					return
 			
 			elif self.__recording == 't':
 				if name == '\n':
-					self.__note = Note()
-					self.__start_recording()
-			
+					self.__stop_recording_title()
+				else:
+					self.__note.write_char(name)
+	
 			elif self.__recording == 'r':
 				if self.__alt_on:
 					if name == 'e': # Command to end note
-						self.__note.end()
 						self.__stop_recording()
 						return
 					if name == 'q': # Quit program directly from recording session
-						self.__note.end()
 						self.__stop_recording()
 						self.__semaphore.release()
 						return
-					elif name == 't': # Command to re-enter title
+					elif name == 't': # Command to enter title
+						self.__start_recording_title()
 						return
 				
 				self.__note.write_char(name)				
@@ -72,6 +75,8 @@ class Keytracker:
 				return
 	
 		except:
+			print("Exception happened idk")
+			traceback.print_exc()
 			self.__semaphore.release()
 
 	# Translates raw keyboard stroke input into the desired character	
@@ -122,14 +127,22 @@ class Keytracker:
 	
 	def __start_recording_title(self):
 		self.__recording = 't'
+		self.__note.start_title()
 		print("Recording title...")
 	
-	def __start_recording(self):
+	def __stop_recording_title(self):
 		self.__recording = 'r'
+		self.__note.end_title()
+		print("New title recorded. Recording resumed...")
+
+	def __start_new_recording(self):
+		self.__recording = 'r'		
+		self.__note = Note()
 		print("Recording...")
 	
 	def __stop_recording(self):
 		self.__recording = 'o'
+		self.__note.end()
 		print("Recording session ended.")
 	
 if __name__ == "__main__":

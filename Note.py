@@ -14,36 +14,60 @@
 
 from datetime import datetime
 from string import ascii_letters, digits
-from os import getcwd
+import os
+import shutil
 from collections import deque
 
 class Note:
 	def __init__(self, filename=""):
-		self.__path = getcwd()
-		self.__buffer = deque()	
+		self.__path = os.getcwd() + "/notes"
+		self.__buffer = deque()
+		self.__title_mode = False
+		self.__title_buffer = None
 		
 		if filename == "":
 			filename = self.__default_filename()
 		else:
 			filename = self.__valid_filename(filename)
 		
-		self.__original_filename = filename	
-		self.__file = open("%s/notes/%s.txt" % (self.__path, filename), 'w')
+		self.__original_filename = filename
+		self.__cur_filename = filename	
+		self.__file = open("%s/%s.txt" % (self.__path, filename), 'w')
 	
 	def write_char(self, ch):
+		buffer = self.__title_buffer if self.__title_mode else self.__buffer
 		if ch == "":
 			return
 		elif ch == "backspace":
-			self.__buffer.pop()
+			buffer.pop()
 		else:
-			self.__buffer.append(ch)
+			buffer.append(ch)
 	
+	def start_title(self):
+		self.__title_buffer = deque()
+		self.__title_mode = True
+	
+	def end_title(self):
+		title = ""
+		while len(self.__title_buffer) > 0:
+			title += self.__title_buffer.popleft()
+		
+		title = self.__valid_filename(title)
+		self.__cur_filename = title
+
+		self.__title_mode = False
+		self.__title_buffer = None
+
 	def end(self):
 		while len(self.__buffer) > 0:
 			self.__file.write(self.__buffer.popleft())
 		
 		self.__file.close()
-	
+		
+		if self.__cur_filename != self.__original_filename:
+			shutil.move("%s/%s.txt" % (self.__path, self.__original_filename),
+						"%s/%s.txt" % (self.__path, self.__cur_filename))
+
 	# Produces a valid filename from the given string.
 	# Replaces spaces with underscores
 	def __valid_filename(self, s):
