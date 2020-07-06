@@ -21,8 +21,9 @@ ignore_keys = {"alt", "shift", "esc", "f1", "f2", "f3", "f4", "f5", "f6", "f7", 
 				"caps lock", "ctrl"}
 
 class Keytracker:
-	def __init__(self):
-		self.__log = ""
+	def __init__(self, controller):
+		self.__controller = controller
+
 		self.__semaphore = Semaphore(0)
 		self.__shift_on = False # Press state of shift key
 		self.__alt_on = False # Press state of alt key
@@ -143,6 +144,8 @@ class Keytracker:
 	def __stop_recording(self):
 		self.__recording = 'o'
 		self.__note.end()
+		self.__controller.alert_new_file(self.__note.get_title())
+		self.__note = None
 		print("Recording session ended.")
 	
 	def __quit(self):

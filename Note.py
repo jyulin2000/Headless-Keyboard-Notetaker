@@ -35,6 +35,9 @@ class Note:
 		self.__cur_filename = filename	
 		self.__file = open(self.path_to(filename), 'w')
 	
+	# Add the given character to the input buffer or title buffer, 
+	# depending on mode. If the backspace code is given, pop the most
+	# recent character
 	def write_char(self, ch):
 		buffer = self.__title_buffer if self.__title_mode else self.__buffer
 		if ch == "":
@@ -44,10 +47,12 @@ class Note:
 		else:
 			buffer.append(ch)
 	
+	# Record entered keys to the title buffer, instead of the normal one	
 	def start_title(self):
 		self.__title_buffer = deque()
 		self.__title_mode = True
 	
+	# Save full inputted title string, return to normal recording
 	def end_title(self):
 		title = ""
 		while len(self.__title_buffer) > 0:
@@ -58,7 +63,13 @@ class Note:
 
 		self.__title_mode = False
 		self.__title_buffer = None
-
+	
+	# Return the current title
+	def get_title(self):
+		return self.__cur_filename
+	
+	# Writes the input buffer to file on disc,
+	# returns the final filename of the note
 	def end(self):
 		while len(self.__buffer) > 0:
 			self.__file.write(self.__buffer.popleft())
@@ -68,7 +79,9 @@ class Note:
 		if self.__cur_filename != self.__original_filename:
 			shutil.move(self.path_to(self.__original_filename),
 						self.path_to(self.__cur_filename))
-	
+		
+		return "%s.txt" % self.__cur_filename
+
 	# Returns full path to the existing notes folder,
 	# creates notes folder if it does not exist already.
 	def __get_path_to_notes(self):
@@ -108,6 +121,7 @@ class Note:
 	# Seconds seem granular enough to guarantee uniqueness,
 	# but there is a check later to ensure no duplicate filenames,
 	# just to be sure.
+	#
 	# String format: MM-DD-YYYY-HHMMSS
 	def __default_filename(self):
 		d = datetime.now().date()
