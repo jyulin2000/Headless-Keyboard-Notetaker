@@ -1,5 +1,7 @@
 *.pyc
 notes/*
-main.py
+!notes/test.txt
 __pycache__
 google_auth/*
+!google_auth/INSTRUCTIONS.md
+*.pickle

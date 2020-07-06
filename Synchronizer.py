@@ -33,7 +33,7 @@ class Synchronizer(threading.Thread):
 		self.__event = threading.Event()
 
 		self.__notes_path = os.getcwd() + "/notes"
-		self.__auth_path = os.getcwd() + "/google_auth/auth"
+		self.__auth_path = os.getcwd() + "/google_auth/.auth"
 		self.__keep = Keep()
 		self.__logged_in = False
 	
@@ -42,7 +42,7 @@ class Synchronizer(threading.Thread):
 			os.mkdir(self.__notes_path)
 		if os.path.exists(file_queue_name):
 			with open(file_queue_name, 'rb') as f:
-				 	self.__file_queue = pickle.load(f)
+				 self.__file_queue = pickle.load(f)
 		
 		self.__running = True
 		while self.__running:
@@ -83,9 +83,16 @@ class Synchronizer(threading.Thread):
 	def __upload_file_queue(self):
 		with self.__file_queue_lock:	
 			for i in range(len(self.__file_queue)):
-				filename = self.__file_queue.pop()
-				#print(filename)
-				self.__file_queue.appendleft(filename)				 
+				title = self.__file_queue.pop()
+				file_path = "%s/%s.txt" % (self.__notes_path, title)
+				if os.path.exists(file_path):
+					try:
+						with open(file_path, 'r') as f:
+							print("Uploading: %s" % (title))
+							self.__keep.createNote(title, f.read())
+							self.__keep.sync()
+					except:
+						self.__file_queue.appendleft(title)				 
 
 	# Use provided authentication to get an instance of the Keep API
 	def __login(self):
@@ -101,4 +108,7 @@ class Synchronizer(threading.Thread):
 			except:
 				return False
 		
-		return self.__keep.login(user, pswrd)	
+		try:
+			return self.__keep.login(user, pswrd)
+		except:
+			return False	

@@ -43,7 +43,8 @@ class Note:
 		if ch == "":
 			return
 		elif ch == "backspace":
-			buffer.pop()
+			if len(buffer) > 0:
+				buffer.pop()
 		else:
 			buffer.append(ch)
 	
