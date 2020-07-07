@@ -17,6 +17,7 @@ from string import ascii_letters, digits
 import os
 import shutil
 from collections import deque
+import Controller
 
 class Note:
 	def __init__(self, filename=""):
@@ -69,6 +70,10 @@ class Note:
 	def get_title(self):
 		return self.__cur_filename
 	
+	# Return whether default title (date/time) is used
+	def uses_default_title(self):
+		return self.__cur_filename == self.__original_filename	
+	
 	# Writes the input buffer to file on disc,
 	# returns the final filename of the note
 	def end(self):
@@ -86,7 +91,7 @@ class Note:
 	# Returns full path to the existing notes folder,
 	# creates notes folder if it does not exist already.
 	def __get_path_to_notes(self):
-		p = os.getcwd() + "/notes"
+		p = Controller.WORKING_DIRECTORY + "/notes"
 		if not os.path.exists(p):
 			try:
 				os.mkdir(p)
@@ -99,11 +104,11 @@ class Note:
 		return "%s/%s.txt" % (self.__path, s)
 
 	# Produces a valid filename from the given string.
-	# Replaces spaces with underscores.
+	# I'm allowing spaces
 	def __valid_filename(self, s):
 		valid_chars = "-_.() %s%s" % (ascii_letters, digits)
 		filename = ''.join(c for c in s if c in valid_chars)
-		filename = filename.replace(' ', '_')
+		#filename = filename.replace(' ', '_')
 		return filename
 	
 	# Adjusts the given filename if it already exists.
@@ -111,7 +116,7 @@ class Note:
 	def __unique_filename(self, s):
 		if os.path.exists(self.path_to(s)):
 			n = 1
-			f = "%s_(%d)"
+			f = "%s (%d)"
 			while os.path.exists(self.path_to(f % (s, n))):
 				n += 1
 			return f % (s, n)	

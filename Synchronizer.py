@@ -10,8 +10,7 @@ import os
 import pickle
 from gkeepapi import Keep
 from time import sleep
-
-file_queue_name = "file_queue.pickle"
+import Controller
 
 # Keep track of notes locally and upload them to Google Keep
 class Synchronizer(threading.Thread):
@@ -31,17 +30,18 @@ class Synchronizer(threading.Thread):
 		# Using this event we pause the thread, allowing it to
 		# execute only when there are new files to be synced.
 		self.__event = threading.Event()
-
-		self.__notes_path = os.getcwd() + "/notes"
-		self.__auth_path = os.getcwd() + "/google_auth/.auth"
+		
+		self.__file_queue_path = "%s/file_queue.pickle" % (Controller.WORKING_DIRECTORY)
+		self.__notes_path = "%s/notes" % (Controller.WORKING_DIRECTORY)
+		self.__auth_path = "%s/google_auth/.auth" % (Controller.WORKING_DIRECTORY)
 		self.__keep = Keep()
 		self.__logged_in = False
 	
 	def run(self):
 		if not os.path.exists(self.__notes_path):
 			os.mkdir(self.__notes_path)
-		if os.path.exists(file_queue_name):
-			with open(file_queue_name, 'rb') as f:
+		if os.path.exists(self.__file_queue_path):
+			with open(self.__file_queue_path, 'rb') as f:
 				 self.__file_queue = pickle.load(f)
 		
 		self.__running = True
@@ -58,7 +58,7 @@ class Synchronizer(threading.Thread):
 		if len(self.__file_queue) > 0:
 			pass
 	
-		with open(file_queue_name, 'wb') as f:
+		with open(self.__file_queue_path, 'wb') as f:
 			pickle.dump(self.__file_queue, f, pickle.HIGHEST_PROTOCOL)
 
 	# Add a filename to be synchronized with Keep

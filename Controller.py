@@ -3,6 +3,9 @@ from Synchronizer import Synchronizer
 from threading import Thread
 from collections import deque
 
+# REPLACE THIS WITH YOUR WORKING DIRECTORY FOR YOUR PROJECT
+WORKING_DIRECTORY = "/home/pi/Projects/Headless-Keyboard-Notetaker"
+
 class Controller:
 	def __init__(self):
 		self.__keytracker = Keytracker(self)
