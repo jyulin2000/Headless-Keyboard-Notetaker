@@ -56,12 +56,16 @@ class Note:
 	
 	# Save full inputted title string, return to normal recording
 	def end_title(self):
-		title = ""
-		while len(self.__title_buffer) > 0:
-			title += self.__title_buffer.popleft()
+		if len(self.__title_buffer == 0):
+			self.__cur_filename = self.__original_filename
 		
-		title = self.__valid_filename(title)
-		self.__cur_filename = self.__unique_filename(title)
+		else:
+			title = ""
+			while len(self.__title_buffer) > 0:
+				title += self.__title_buffer.popleft()
+				
+			title = self.__valid_filename(title)
+			self.__cur_filename = self.__unique_filename(title)
 
 		self.__title_mode = False
 		self.__title_buffer = None
