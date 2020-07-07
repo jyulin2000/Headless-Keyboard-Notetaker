@@ -56,7 +56,7 @@ class Note:
 	
 	# Save full inputted title string, return to normal recording
 	def end_title(self):
-		if len(self.__title_buffer == 0):
+		if len(self.__title_buffer) == 0:
 			self.__cur_filename = self.__original_filename
 		
 		else:
