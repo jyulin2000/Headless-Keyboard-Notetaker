@@ -1,0 +1,1 @@
+Hello. I am typing into my keyboard with no visual reference. I am going to title this note, "example", and it should appear in the "notes" folder in a file called "example.txt". I hope I didn't make any typos!

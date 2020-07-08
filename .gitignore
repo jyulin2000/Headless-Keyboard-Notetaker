@@ -1,6 +1,6 @@
 *.pyc
 notes/*
-!notes/test.txt
+!notes/example.txt
 __pycache__
 google_auth/*
 !google_auth/INSTRUCTIONS.md
