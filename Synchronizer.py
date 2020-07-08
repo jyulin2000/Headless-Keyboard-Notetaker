@@ -11,6 +11,7 @@ import pickle
 from gkeepapi import Keep
 from time import sleep
 import Controller
+from re import match
 
 # Keep track of notes locally and upload them to Google Keep
 class Synchronizer(threading.Thread):
@@ -83,17 +84,25 @@ class Synchronizer(threading.Thread):
 	def __upload_file_queue(self):
 		with self.__file_queue_lock:	
 			for i in range(len(self.__file_queue)):
-				title = self.__file_queue.pop()
-				file_path = "%s/%s.txt" % (self.__notes_path, title)
-				if os.path.exists(file_path):
-					try:
-						with open(file_path, 'r') as f:
-							print("Uploading: %s" % (title))
-							self.__keep.createNote(title, f.read())
-							self.__keep.sync()
-					except:
-						self.__file_queue.appendleft(title)				 
-
+				self.__upload_file(self.__file_queue.pop())
+	
+	# Try to upload the contents of a file to Google Notes
+	# Use the filename as the title
+	# If default filename was used, do no title
+	def __upload_file(self, filename):
+		file_path = "%s/%s.txt" % (self.__notes_path, filename)
+		
+		if os.path.exists(file_path):
+			try:
+				with open(file_path, 'r') as f:
+					print("Uploading: %s" % (filename))
+					title = "" if match("[0-9]{2}-[0-9]{2}-[0-9]{4}-[0-9]{6}",
+										filename) else filename
+					note = self.__keep.createNote(title, f.read())
+					self.__keep.sync()
+			except:
+				self.__file_queue.appendleft(title)
+	
 	# Use provided authentication to get an instance of the Keep API
 	def __login(self):
 		user = ""

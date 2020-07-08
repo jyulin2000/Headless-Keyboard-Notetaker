@@ -19,6 +19,8 @@ import shutil
 from collections import deque
 import Controller
 
+space_chars = " \n\t"
+stop_chars = ".,:;\"?!i=+[]{}()/?\\|~`@#$%^&*"
 class Note:
 	def __init__(self, filename=""):
 		self.__path = self.__get_path_to_notes()
@@ -37,17 +39,41 @@ class Note:
 		self.__file = open(self.path_to(filename), 'w')
 	
 	# Add the given character to the input buffer or title buffer, 
-	# depending on mode. If the backspace code is given, pop the most
-	# recent character
+	# depending on mode.
 	def write_char(self, ch):
-		buffer = self.__title_buffer if self.__title_mode else self.__buffer
+		buffer = self.__get_current_buffer() 
 		if ch == "":
 			return
-		elif ch == "backspace":
-			if len(buffer) > 0:
-				buffer.pop()
 		else:
 			buffer.append(ch)
+	
+	# Backspace the last character
+	def char_backspace(self):
+		buffer = self.__get_current_buffer()
+		if len(buffer) > 0:
+			buffer.pop()
+	
+	# Backspace the last word
+	# Mimics the behavior of ctrl-backspace in Google Docs
+	def word_backspace(self):
+		buffer = self.__get_current_buffer()
+		
+		# First pop off all spaces
+		# I think python has short circuiting, otherwise fix this
+		while len(buffer) > 0 and buffer[-1] == " ":
+			buffer.pop()
+		if len(buffer) > 0:
+			c = buffer.pop()
+			if c in space_chars:
+				return
+			elif c in stop_chars:
+				while len(buffer) > 0 and buffer[-1] in stop_chars:
+					buffer.pop()
+			else:
+				while (len(buffer) > 0 and 
+					buffer[-1] not in stop_chars and
+					buffer[-1] not in space_chars):
+					buffer.pop()
 	
 	# Record entered keys to the title buffer, instead of the normal one	
 	def start_title(self):
@@ -106,6 +132,9 @@ class Note:
 	# Produces full path to given filename with extension .txt
 	def path_to(self, s):
 		return "%s/%s.txt" % (self.__path, s)
+	
+	def __get_current_buffer(self):
+		return self.__title_buffer if self.__title_mode else self.__buffer
 
 	# Produces a valid filename from the given string.
 	# I'm allowing spaces

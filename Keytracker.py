@@ -27,6 +27,7 @@ class Keytracker:
 		self.__semaphore = Semaphore(0)
 		self.__shift_on = False # Press state of shift key
 		self.__alt_on = False # Press state of alt key
+		self.__ctrl_on = False # Press state of ctrl key
 		self.__note = None
 
 		# Recording state:
@@ -51,10 +52,25 @@ class Keytracker:
 					return
 			
 			elif self.__recording == 't':
-				if name == '\n':
+				if self.__alt_on:
+					if name == 'e': # End title, then end note
+						self.__stop_recording_title()
+						self.__stop_recording()
+						return
+					elif name == 'q': # Save note and quit
+						self.__stop_recording_title()
+						self.__stop_recording()
+						self.__quit()	
+				elif name == '\n':
 					self.__stop_recording_title()
 				else:
-					self.__note.write_char(name)
+					if name == "backspace":
+						if self.__ctrl_on:
+							self.__note.word_backspace()
+						else:
+							self.__note.char_backspace()
+					else:
+						self.__note.write_char(name)
 	
 			elif self.__recording == 'r':
 				if self.__alt_on:
@@ -69,8 +85,14 @@ class Keytracker:
 						self.__start_recording_title()
 						return
 				
-				self.__note.write_char(name)				
-			
+				if name == "backspace":
+					if self.__ctrl_on:
+						self.__note.word_backspace()
+					else:
+						self.__note.char_backspace()
+				else:
+					self.__note.write_char(name)
+	
 			else:
 				return
 	
@@ -116,13 +138,21 @@ class Keytracker:
 		self.__alt_on = True
 	def toggle_alt_off(self, event):
 		self.__alt_on = False	
-		
+	
+	# Same for ctrl key
+	def toggle_ctrl_on(self, event):
+		self.__ctrl_on = True
+	def toggle_ctrl_off(self, event):
+		self.__ctrl_on = False
+	
 	def start(self):
 		keyboard.on_press(callback=self.callback)
 		keyboard.on_press_key("shift", callback=self.toggle_shift_on)
 		keyboard.on_release_key("shift", callback=self.toggle_shift_off)
 		keyboard.on_press_key("alt", callback=self.toggle_alt_on)
 		keyboard.on_release_key("alt", callback=self.toggle_alt_off)
+		keyboard.on_press_key("ctrl", callback=self.toggle_ctrl_on)
+		keyboard.on_release_key("ctrl", callback=self.toggle_ctrl_off)
 
 		self.__semaphore.acquire()
 	
@@ -152,7 +182,3 @@ class Keytracker:
 		print("Quitting...")
 		keyboard.unhook_all()
 		self.__semaphore.release()
-if __name__ == "__main__":
-	keytracker = Keytracker()
-	keytracker.start()
-		
