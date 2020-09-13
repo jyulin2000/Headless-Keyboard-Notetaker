@@ -4,7 +4,7 @@ Small project to turn a Raspberry Pi and USB keyboard into a dedicated headless 
 ## Interface:
 - Press Enter to begin a new note, and Alt+E to close out and save it. Notes will also save automatically every 30 seconds during recording.
 - To title your note, press Alt+T at any point while recording, type your title, then press Enter to return to recording.
-- If you want autoumatic syncing with Google Keep, include a file called '.auth' in the google_auth folder with your Google username in the first line and password in the second (obviously, this ***not*** a secure practice, do this at your own risk).
+- If you want automatic syncing with Google Keep, include a file called '.auth' in the google_auth folder with your Google login in the first line in the form <username>,<password> (obviously, this ***not*** a secure practice, do this at your own risk).
 
 The current status is indicated by the Caps Lock light - on means recording, blinking means recording title/filename, and off means not recording. I have disabled the actual function of Caps Lock in my OS to avoid interfering with the light indication.
 
